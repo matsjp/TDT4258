@@ -106,13 +106,15 @@ dummy_handler:
 //Setup for port C
 ldr r1, =GPIO_PC_BASE
 ldr r2, =GPIO_MODEL
-mov r0, 0b00010001000100010001000100010001
+mov r0, 0x33333333
 str r0, [r2, r1]//Configure gpio 0 to 7 to be inputs
 
 //Setup for port a
 ldr r1, =GPIO_PC_BASE
+mov r0, 0x2
+str r0, [r1]
 ldr r2, =GPIO_MODEH
-mov r0, 0b01000100010001000100010001000100
+mov r0, 0x55555555
 str r0, [r2, r1]//Configure gpio 8 to 15 to be outputs
 
 //Save some values that will be needed in the loop
