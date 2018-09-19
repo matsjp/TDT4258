@@ -102,3 +102,41 @@ gpio_handler:
 dummy_handler:  
         b .  // do nothing
 
+/*This section is for the setup of the GIOP*/
+//Setup for port C
+ldr r1, =GPIO_PC_BASE
+ldr r2, =GPIO_MODEL
+mov r0, 0b00010001000100010001000100010001
+str r0, [r2, r1]//Configure gpio 0 to 7 to be inputs
+
+//Setup for port a
+ldr r1, =GPIO_PC_BASE
+ldr r2, =GPIO_MODEH
+mov r0, 0b01000100010001000100010001000100
+str r0, [r2, r1]//Configure gpio 8 to 15 to be outputs
+
+//Save some values that will be needed in the loop
+ldr r1, =GPIO_PA_BASE
+ldr r0, =GPIO_DOUT
+add r1, r1, r0//Port A DOUT register
+ldr r2, =GPIO_PC_BASE
+ldr r0, =GPIO_DIN
+add r2, r2, r0//Port C DIN register
+//Infinite loop that polls gpio for input each iteration
+loop:
+	//Check if pin 0 is pushed
+	and r3, r2, 0b00000001
+	cmp r3, 1
+	//If pin 0 is pushed, jump to pin0pushed
+	beq pin0pushed
+	//Turn off light 0
+	ldr r4, [r1]
+	and r4, r4, 0
+	b cont0
+	pin0pushed:
+		//Turn on light 0
+		ldr r4, [r1]
+		orr r4, r4, 0b00000001
+		str r1, [r4]
+	cont0:
+	b loop
