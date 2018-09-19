@@ -103,6 +103,11 @@ dummy_handler:
         b .  // do nothing
 
 /*This section is for the setup of the GIOP*/
+//Enable CMU clock
+ldr r1, =CMU_BASE
+ldr r2, =CMU_HFPERCLKEN0
+mov r3, 0b10000000000000
+str r3, [r2, r1]
 //Setup for port C
 ldr r1, =GPIO_PC_BASE
 ldr r2, =GPIO_MODEL
