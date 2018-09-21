@@ -18,7 +18,7 @@ ex1.elf : ex1.o
 	${LD} -T ${LINKERSCRIPT} $^ -o $@ ${LDFLAGS} 
 
 ex1.o : ex1.s
-	${AS} ${ASFLAGS} $< -o $@
+	${AS} ${ASFLAGS} $< -g -o $@
 
 .PHONY : upload
 upload :
