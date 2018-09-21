@@ -121,6 +121,10 @@ str r0, [r1]
 ldr r2, =GPIO_MODEH
 mov r0, 0x55555555
 str r0, [r2, r1]//Configure gpio 8 to 15 to be outputs
+//Not sure why I am doing this, just following instructions from compendium
+ldr r2, =GPIO_DOUT
+mov r0, 0xff
+str r0, [r2, r1]
 
 //Save some values that will be needed in the loop
 ldr r1, =GPIO_PA_BASE
