@@ -20,9 +20,22 @@ ex1.elf : ex1.o
 ex1.o : ex1.s
 	${AS} ${ASFLAGS} $< -g -o $@
 
+ex1v2.bin : ex1v2.elf
+	${OBJCOPY} -j .text -O binary $< $@
+
+ex1v2.elf : ex1v2.o 
+	${LD} -T ${LINKERSCRIPT} $^ -o $@ ${LDFLAGS} 
+
+ex1v2.o : ex1v2.s
+	${AS} ${ASFLAGS} $< -g -o $@
+
 .PHONY : upload
 upload :
 	-eACommander.sh -r --address 0x00000000 -f "ex1.bin" -r
+
+.PHONY : uploadv2
+uploadv2 :
+	-eACommander.sh -r --address 0x00000000 -f "ex1v2.bin" -r
 
 .PHONY : clean
 clean :
