@@ -100,7 +100,7 @@ _reset:
 	
 	//bl energy_optimization_adjust_peripheral_clock
 	
-	bl energy_optimization_adjust_core_clock
+	//bl energy_optimization_adjust_core_clock
 	wfi
 	
 	
@@ -213,12 +213,14 @@ energy_optimization_adjust_core_clock:
 
         .thumb_func
 gpio_handler:
+	//Clear interrupt bits
 	ldr r1, =GPIO_BASE
 	ldr r2, =GPIO_IF
 	ldr r3, =GPIO_IFC
 	ldr r4, [r1, r2]
 	str r4, [r1, r3]
 	
+	//Switch the leds
 	ldr r1, =GPIO_PC_BASE
 	ldr r2, =GPIO_DIN
 	ldr r3, [r1, r2]
@@ -227,6 +229,7 @@ gpio_handler:
 	ldr r1, =GPIO_PA_BASE
 	ldr r2, =GPIO_DOUT
 	str r3, [r1, r2]
+	
 	bx lr	
 	/////////////////////////////////////////////////////////////////////////////
 	

@@ -112,10 +112,12 @@ _reset:
 	mov r3, 0xff
 	str r3, [r1, r2]
 	
+	//Preparing these registers to be used in the loop
 	ldr r1, =GPIO_PA_BASE
 	ldr r2, =GPIO_PC_BASE
 	ldr r3, =GPIO_DIN
 	ldr r4, =GPIO_DOUT
+	//Switch the leds
 	loop:
 		ldr r5, [r2, r3]
 		lsl r5, r5, 8
