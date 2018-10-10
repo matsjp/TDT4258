@@ -12,7 +12,7 @@
 /*
  * The period between sound samples, in clock cycles 
  */
-#define   SAMPLE_PERIOD   0
+#define   SAMPLE_PERIOD   317
 
 /*
  * Declaration of peripheral setup functions 
@@ -43,7 +43,27 @@ int main(void)
 	 * interrupts instead of infinite loop for busy-waiting 
 	 */
 	while (1){
-		*GPIO_PA_DOUT = *GPIO_PC_DIN << 8;
+		//If button 1 is pushed
+		if (*GPIO_PC_DIN == 0xfe){
+			int loop = 1;
+			startTimer();
+			while(1){
+				if (*TIMER1_CNT == 1){
+					if (*GPIO_PA_DOUT == 0x00000000){
+						*GPIO_PA_DOUT = 0xffffffff;
+					}
+					else{
+						*GPIO_PA_DOUT = 0x00000000;
+					}
+					stopTimer();
+					loop = 0;
+					break;
+				}
+			}
+		}
+		else {
+			*GPIO_PA_DOUT = 0xffffffff;
+		}
 	}
 
 	return 0;
