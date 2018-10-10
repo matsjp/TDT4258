@@ -3,8 +3,7 @@
 
 #include "efm32gg.h"
 
-void setupDAC()
-{
+void setupDAC(){
 	/*
 	 * TODO enable and set up the Digital-Analog Converter
 	 * 
@@ -16,8 +15,20 @@ void setupDAC()
 	 * timer interrupt 
 	 */
 	 
-	 *CMU_HFPERCLKEN0 |= (1 << 17);
-	 *DAC0_CTRL = 0X50010; 
+	 *CMU_HFPERCLKEN0 |= CMU2_HFPERCLKEN0_DAC0;
+	 *DAC0_CTRL = 0X50014; 
 	 *DAC0_CH0CTRL = 1;
 	 *DAC0_CH1CTRL = 1;
 }
+
+void disableDAC(){
+
+     *DAC0_CTRL = 0; 
+	 *DAC0_CH0CTRL = 1;
+	 *DAC0_CH1CTRL = 1;
+	 *CMU_HFPERCLKEN0 &= ~CMU2_HFPERCLKEN0_DAC0;
+}	 
+	 
+	 
+
+
