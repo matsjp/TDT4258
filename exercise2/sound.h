@@ -1,4 +1,4 @@
-struct sound{
+struct sound {
 	int soundListLength;
 	int soundList[50];
 };

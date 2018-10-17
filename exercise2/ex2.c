@@ -52,8 +52,8 @@ int main(void)
 	//startTimer();
 	//__asm__("wfi");
 	//startTimer();
-	while(1);
-	
+	while (1) ;
+
 	return 0;
 }
 
@@ -67,11 +67,11 @@ void setupNVIC()
 	 * need TIMER1, GPIO odd and GPIO even interrupt handling for this
 	 * assignment. 
 	 */
-	 int GPIO_EVEN = 1 << 1;
-	 int GPIO_ODD = 1 << 11;
-	 int TIMER1 = 1 << 12;
-	 int ISER0Value = GPIO_EVEN | GPIO_ODD | TIMER1;
-	 *ISER0 = ISER0Value;
+	int GPIO_EVEN = 1 << 1;
+	int GPIO_ODD = 1 << 11;
+	int TIMER1 = 1 << 12;
+	int ISER0Value = GPIO_EVEN | GPIO_ODD | TIMER1;
+	*ISER0 = ISER0Value;
 }
 
 /*
