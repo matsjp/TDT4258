@@ -20,6 +20,10 @@
 void setupTimer(uint32_t period);
 void setupDAC();
 void setupNVIC();
+void setupGPIO();
+void startTimer();
+void stopTimer();
+void initializeSounds();
 
 /*
  * Your code will start executing here 
@@ -32,6 +36,7 @@ int main(void)
 	setupGPIO();
 	setupDAC();
 	setupTimer(SAMPLE_PERIOD);
+	initializeSounds();
 
 	/*
 	 * Enable interrupt handling 
@@ -42,30 +47,13 @@ int main(void)
 	 * TODO for higher energy efficiency, sleep while waiting for
 	 * interrupts instead of infinite loop for busy-waiting 
 	 */
-	while (1){
-		//If button 1 is pushed
-		if (*GPIO_PC_DIN == 0xfe){
-			int loop = 1;
-			startTimer();
-			while(1){
-				if (*TIMER1_CNT == 1){
-					if (*GPIO_PA_DOUT == 0x00000000){
-						*GPIO_PA_DOUT = 0xffffffff;
-					}
-					else{
-						*GPIO_PA_DOUT = 0x00000000;
-					}
-					stopTimer();
-					loop = 0;
-					break;
-				}
-			}
-		}
-		else {
-			*GPIO_PA_DOUT = 0xffffffff;
-		}
-	}
-
+	//Enable deep sleep
+	//*SCR |= 0b110;
+	//startTimer();
+	//__asm__("wfi");
+	//startTimer();
+	while(1);
+	
 	return 0;
 }
 
@@ -79,6 +67,11 @@ void setupNVIC()
 	 * need TIMER1, GPIO odd and GPIO even interrupt handling for this
 	 * assignment. 
 	 */
+	 int GPIO_EVEN = 1 << 1;
+	 int GPIO_ODD = 1 << 11;
+	 int TIMER1 = 1 << 12;
+	 int ISER0Value = GPIO_EVEN | GPIO_ODD | TIMER1;
+	 *ISER0 = ISER0Value;
 }
 
 /*
