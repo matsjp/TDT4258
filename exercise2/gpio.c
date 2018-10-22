@@ -26,8 +26,8 @@ void setupGPIO()
 
 	//Setup GPIO Interrupt
 	*GPIO_EXTIPSELL = 0x22222222;
-	//*GPIO_EXTIRISE = 0xff;
+	*GPIO_EXTIRISE = 0;
 	*GPIO_EXTIFALL = 0xff;
 	*GPIO_IEN = 0xff;
-	*GPIO_IFC = 0 b1111111111111111;
+	*GPIO_IFC = 0xffffffff;
 }

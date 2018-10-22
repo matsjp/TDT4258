@@ -48,11 +48,11 @@ int main(void)
 	 * interrupts instead of infinite loop for busy-waiting 
 	 */
 	//Enable deep sleep
-	//*SCR |= 0b110;
-	//startTimer();
-	//__asm__("wfi");
-	//startTimer();
-	while (1) ;
+	*EMU_CTRL = 0;
+	*SCR = 0b110;
+	__asm__("wfi");
+	
+	//while (1) ;
 
 	return 0;
 }
