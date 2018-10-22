@@ -21,7 +21,6 @@ void startTimer()
 void stopTimer()
 {
 	*TIMER1_CMD = 0x2;
-	*GPIO_PA_DOUT = 0;
 }
 
 void disableTimer()

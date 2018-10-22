@@ -49,7 +49,7 @@ int main(void)
 	 */
 	//Enable deep sleep
 	*EMU_CTRL = 0;
-	*SCR = 0b110;
+	*SCR = 0b10;
 	__asm__("wfi");
 	
 	//while (1) ;
