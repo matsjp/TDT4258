@@ -2,54 +2,29 @@
 #include <stdbool.h>
 
 #include "efm32gg.h"
+#include "sound.h"
 //TODO make function and variable names consistent
 void startTimer();
 void GPIO_Handler();
 void stopTimer();
-//void addSound(struct sound *soundStruct, int sound[], int length);
+void enableEM4();
+void enableEM1();
+
+extern struct sound soundStruct1;
+extern struct sound soundStruct2;
+extern struct sound soundStruct3;
+extern struct sound soundStruct4;
+extern volatile struct sound *soundPointer;
+
 
 volatile int timerTracker = 0;
 volatile int nextSound = 0;
-//TODO fix this
-volatile int s = 0xf;
+volatile int s = 0;
 
 //TODO move sound stuff to its own file
-
-struct sound {
-	int length;
-	int soundList[50];
-};
-
-struct sound soundStruct1;
-struct sound soundStruct2;
-struct sound soundStruct3;
-struct sound soundStruct4;
-volatile struct sound *soundPointer;
-
-int sound1[3] = { 0x22, 0x42, 0xa2 };
-int sound2[4] = { 0x62, 0x32, 0x22, 0x72 };
-int sound3[4] = { 0x22, 0xf2, 0xd2, 0x82 };
-int sound4[4] = { 0x22, 0xf2, 0xd2, 0x82 };
-
 /*int sound4[16] = {0xb0, 0xe0, 0xa0, 0x20, 0xb0, 0xe0, 0xa0, 0x20, 0xb0, 0xe0, 0xa, 0x2, 0xb, 0xe, 0xa, 0x2, 0xb, 0xe, 0xa, 0x2, 0xb, 0xe, 0xa, 0x2, 0xb, 0xe, 0xa, 0x2, 0xb, 0xe, 0xa, 0x2};*/
 //int sound4[10] = { 160, 230, 300, 370, 440, 490, 420, 350, 280, 210 };
 
-void addSound(struct sound *soundStruct, int sound[], int length)
-{
-	soundStruct->length = length;
-	for (int i = 0; i < 3; i++) {
-		soundStruct->soundList[i] = sound[i];
-	}
-}
-
-void initializeSounds()
-{
-	addSound(&soundStruct1, sound1, sizeof(sound1) / sizeof(sound1[0]));
-	addSound(&soundStruct2, sound2, sizeof(sound2) / sizeof(sound2[0]));
-	addSound(&soundStruct3, sound3, sizeof(sound3) / sizeof(sound3[0]));
-	addSound(&soundStruct4, sound4, sizeof(sound4) / sizeof(sound4[0]));
-	//soundPointer = &soundStruct4;
-}
 
 volatile int x = 0;
 volatile int soundIsPlaying = 0;
@@ -76,6 +51,8 @@ void __attribute__ ((interrupt)) TIMER1_IRQHandler()
 			stopTimer();
 			timerTracker = 0;
 			soundIsPlaying = 0;
+			enableEM4();
+			s = 0;
 			x = 30;
 		} else {
 			nextSound++;
@@ -133,21 +110,25 @@ void GPIO_Handler()
 		case 0b11111110:
 			soundIsPlaying = 1;
 			soundPointer = &soundStruct1;
+			enableEM1();
 			startTimer();
 			break;
 		case 0b11111101:
 			soundIsPlaying = 1;
 			soundPointer = &soundStruct2;
+			enableEM1();
 			startTimer();
 			break;
 		case 0b11111011:
 			soundIsPlaying = 1;
 			soundPointer = &soundStruct3;
+			enableEM1();
 			startTimer();
 			break;
 		case 0b11110111:
 			soundIsPlaying = 1;
 			soundPointer = &soundStruct4;
+			enableEM1();
 			startTimer();
 			break;
 		default:

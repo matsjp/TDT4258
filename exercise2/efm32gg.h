@@ -48,6 +48,7 @@
 
 #define CMU_BASE2 0x400c8000
 
+#define CMU_HFCORECLKDIV ((volatile uint32_t*)(CMU_BASE2 + 0x004))
 #define CMU_HFPERCLKDIV  ((volatile uint32_t*)(CMU_BASE2 + 0x008))
 #define CMU_HFCORECLKEN0 ((volatile uint32_t*)(CMU_BASE2 + 0x040))
 #define CMU_HFPERCLKEN0  ((volatile uint32_t*)(CMU_BASE2 + 0x044))
@@ -97,6 +98,7 @@
 #define EMU_BASE2 0x400c6000
 
 #define EMU_CTRL ((volatile uint32_t*)(EMU_BASE2 + 0x000))
+#define EMU_MEMCTRL ((volatile uint32_t*)(EMU_BASE2 + 0x004))
 
 // DAC0
 

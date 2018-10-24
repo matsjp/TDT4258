@@ -24,6 +24,9 @@ void setupGPIO();
 void startTimer();
 void stopTimer();
 void initializeSounds();
+void enableEM4();
+void enableEM1();
+void disableRAMBlocks();
 
 /*
  * Your code will start executing here 
@@ -42,6 +45,8 @@ int main(void)
 	 * Enable interrupt handling 
 	 */
 	setupNVIC();
+	
+	//disableRAMBlocks();
 
 	/*
 	 * TODO for higher energy efficiency, sleep while waiting for
@@ -49,7 +54,7 @@ int main(void)
 	 */
 	//Enable deep sleep
 	*EMU_CTRL = 0;
-	*SCR = 0b10;
+	enableEM4();
 	__asm__("wfi");
 	
 	//while (1) ;
@@ -92,3 +97,4 @@ void setupNVIC()
  * BURTC_IRQHandler CMU_IRQHandler VCMP_IRQHandler LCD_IRQHandler
  * MSC_IRQHandler AES_IRQHandler EBI_IRQHandler EMU_IRQHandler 
  */
+ 
