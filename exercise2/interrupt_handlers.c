@@ -107,25 +107,25 @@ void GPIO_Handler()
 	x = 0;
 		//TODO change binary literaly to hex literals
 		switch (buttonPressed) {
-		case 0b11111110:
+		case 0xfe:
 			soundIsPlaying = 1;
 			soundPointer = &soundStruct1;
 			enableEM1();
 			startTimer();
 			break;
-		case 0b11111101:
+		case 0xfd:
 			soundIsPlaying = 1;
 			soundPointer = &soundStruct2;
 			enableEM1();
 			startTimer();
 			break;
-		case 0b11111011:
+		case 0xfb:
 			soundIsPlaying = 1;
 			soundPointer = &soundStruct3;
 			enableEM1();
 			startTimer();
 			break;
-		case 0b11110111:
+		case 0xf7:
 			soundIsPlaying = 1;
 			soundPointer = &soundStruct4;
 			enableEM1();

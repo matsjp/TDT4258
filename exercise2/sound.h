@@ -1,4 +1,4 @@
 struct sound {
 	int length;
-	int soundList[50];
+	int16_t soundList[50];
 };
