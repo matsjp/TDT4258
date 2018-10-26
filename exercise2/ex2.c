@@ -39,7 +39,6 @@ int main(void)
 	setupGPIO();
 	setupDAC();
 	setupTimer(SAMPLE_PERIOD);
-	initializeSounds();
 
 	/*
 	 * Enable interrupt handling 
