@@ -24,6 +24,7 @@ void setupNVIC();
 void setupGPIO();
 void startTimer();
 void stopTimer();
+void toggleLED();
 extern uint16_t sound1;
 extern uint16_t sound2;
 extern uint16_t sound3;
@@ -31,8 +32,8 @@ extern uint16_t intro;
 int soundLength;
 uint16_t *soundPointer;
 int nextSound = 1;
-int x = 0;
 int soundIsPlaying = 0;
+extern void playSound();
 /*
  * Your code will start executing here 
  */
@@ -45,9 +46,26 @@ int main(void)
 	setupDAC();
 	setupTimer(SAMPLE_PERIOD);
 
-	
+	startTimer();
 	while (1){
-		
+		int buttonPressed = *GPIO_PC_DIN;
+		switch (buttonPressed) {
+			case 0xfe:
+				playSound(&sound1);
+				break;
+			case 0xfd:
+				playSound(&sound2);
+				break;
+			case 0xfb:
+				playSound(&sound3);
+				break;
+			case 0xf7:
+				playSound(&intro);
+				break;
+			default:
+				break;
+		}
 	}
 	return 0;
 }
+
