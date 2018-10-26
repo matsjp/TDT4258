@@ -43,5 +43,5 @@ startTimer ()
 void
 stopTimer ()
 {
-  *TIMER1_CMD = 0x2;
+  *TIMER1_CMD = 2;
 }
