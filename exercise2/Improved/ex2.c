@@ -27,7 +27,6 @@ main (void)
   setupNVIC ();
 
   //disableRAMBlocks();
-
   //Enable deep sleep
   *EMU_CTRL = 0;
   enableEM4 ();
