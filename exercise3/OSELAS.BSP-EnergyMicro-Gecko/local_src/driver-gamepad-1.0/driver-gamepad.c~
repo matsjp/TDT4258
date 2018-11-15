@@ -154,7 +154,7 @@ static ssize_t gamepad_read(struct file* filp, char* __user buff,
 	printk("gamepad_read\n");
     uint32_t data = ioread32(GPIO_PC_DIN);
     copy_to_user(buff, &data, 1);
-    printk(data);
+    printf(data);
     return 1;
 }
 
