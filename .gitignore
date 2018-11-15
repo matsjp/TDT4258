@@ -2,3 +2,6 @@
 *.bin
 *.elf
 *~
+!exercise3/OSELAS.BSP-EnergyMicro-Gecko
+exercise3/OSELAS.BSP-EnergyMicro-Gecko/*
+!OSELAS.BSP-EnergyMicro-Gecko/local-src
