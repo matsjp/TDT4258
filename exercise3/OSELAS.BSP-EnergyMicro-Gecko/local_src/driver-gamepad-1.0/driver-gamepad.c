@@ -152,9 +152,11 @@ static ssize_t gamepad_read(struct file* filp, char* __user buff,
         size_t count, loff_t* offp)
 {
 	printk("gamepad_read\n");
-    uint32_t data = ioread32(GPIO_PC_DIN);
-    copy_to_user(buff, &data, 1);
-    printk(data);
+    int data = ioread32(GPIO_PC_DIN);
+    //printk(KERN_INFO"%x\n", data);
+    if (copy_to_user(buff, &data, 1)){
+    	printk("gapepad_read copy_to_user error");
+    }
     return 1;
 }
 

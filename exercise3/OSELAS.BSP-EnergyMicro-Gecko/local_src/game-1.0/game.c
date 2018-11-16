@@ -3,21 +3,30 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 FILE* gamepad_driver;
 
-int buffer[16] = {}; 
+char buffer[16] = {}; 
 
 void handler(int signo){
 	printf("Handler\n");
-	read(gamepad_driver, &buffer, 1);
+	int x = fgetc(gamepad_driver);
+	printf("%x\n", x);
+	if(x == 0xf7){
+		printf("It works\n");
+	}
+	//down: f7
+	//left: fe
+	//right: fb
+	//up: fd
 }
 
 int main(int argc, char *argv[])
 {
 	printf("Hello World, I'm game!\n");
 	
-	gamepad_driver = fopen("/dev/gamepad", "rb");
+	gamepad_driver = fopen("/dev/gamepad", "rd");
 	if (!gamepad_driver) {
         printf("Unable to open driver device, maybe you didn't load the module?\n");
         return EXIT_FAILURE;
