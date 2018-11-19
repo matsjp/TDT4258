@@ -93,6 +93,26 @@ static int __init gamepad_init(void){
     iowrite32(0x33333333, GPIO_PC_MODEL);
     iowrite32(0xFF, GPIO_PC_DOUT);
     iowrite32(0x22222222, GPIO_EXTIPSELL);
+    
+    //TODO release these
+    if (request_mem_region(DAC0_CTRL, 1, NAME) == NULL ) {
+        printk(KERN_ALERT "Error requesting DAC0_CTRL memory region, already in use?\n");
+        return -1;
+    }
+    
+    if (request_mem_region(DAC0_CH0CTRL, 1, NAME) == NULL ) {
+        printk(KERN_ALERT "Error requesting DAC0_CH0CTRL memory region, already in use?\n");
+        return -1;
+    }
+    
+    if (request_mem_region(DAC0_CH1CTRL, 1, NAME) == NULL ) {
+        printk(KERN_ALERT "Error requesting DAC1_CH0CTRL memory region, already in use?\n");
+        return -1;
+    }
+	
+	iowrite32(0x50010, DAC0_CTRL);
+	iowrite32(1, DAC0_CH0CTRL);
+	iowrite32(1, DAC0_CH1CTRL);
 	
 	//TODO set in open
     request_irq(GPIO_EVEN, (irq_handler_t)gpio_interrupt_handler, 0, NAME, &gamepad_cdev);
@@ -152,16 +172,20 @@ static ssize_t gamepad_read(struct file* filp, char* __user buff,
         size_t count, loff_t* offp)
 {
 	printk("gamepad_read\n");
-    uint32_t data = ioread32(GPIO_PC_DIN);
-    copy_to_user(buff, &data, 1);
-    printf(data);
+    int data = ioread32(GPIO_PC_DIN);
+    //printk(KERN_INFO"%x\n", data);
+    if (copy_to_user(buff, &data, 1)){
+    	printk("gapepad_read copy_to_user error");
+    }
     return 1;
 }
 
 static ssize_t gamepad_write(struct file* filp, char* __user buff,
         size_t count, loff_t* offp)
 {
-    printk("Writing to buttons doesn't make sense.");
+	int data = 0;
+    copy_from_user(&data, &buff, 1);
+    printk("%d\n", data);
     return 1;
 }
 
