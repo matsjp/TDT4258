@@ -9,19 +9,19 @@
 #include <linux/fb.h>
 #include <sys/ioctl.h>
 
+
 #define YELLOW 0xFFE0
 #define BLACK 0x0000
 #define WHITE 0xFFFF
 #define CYAN 0x07FF
 
 FILE* gamepad_driver;
-
-char buffer[16] = {};
+FILE* framebuffer_driver;
 
 char gameboard[12][17] = {{"wwwwwwwwwwwwwwew\0"},
                           {"woooooooooooooow\0"},
                           {"wowwwwwwwwwwwwww\0"},
-                          {"wowoowwoopwoooww\0"},
+                          {"wowpowwooowoooww\0"},
                           {"wowwowwowowowoww\0"},
                           {"wowwoooowooowoww\0"},
                           {"wowoowwwwwwwwoww\0"},
@@ -31,12 +31,12 @@ char gameboard[12][17] = {{"wwwwwwwwwwwwwwew\0"},
                           {"wowwwwwwwwwwowww\0"},
                           {"woooooooooooowww\0"}
 };
-int playerx = 1;
-int playery = 11;
+int playerx = 3;
+int playery = 3;
 int goalx = 14;
 int goaly = 0;
-int fbfd;
-uint16_t* fbp;
+int framebuffer_fd;
+uint16_t* framebuffer_pointer;
 int screensize_pixels;
 int screensize_bytes;
 
@@ -71,7 +71,7 @@ void draw_maze(){
 		else if(grid == 'e'){
 			color = CYAN;
 		}
-		fbp[i] = gameboard[row][col];
+		framebuffer_pointer[i] = color;
 	}
 }
 
@@ -125,7 +125,7 @@ void move_down(){
 
 void redraw(){
 	draw_maze();
-	ioctl(fbfd, 0x4680, &screen);
+	ioctl(framebuffer_fd, 0x4680, &screen);
 }
 
 
@@ -136,11 +136,11 @@ void handler(int signo){
 		move_down();
 		redraw();
 	}
-	if(input == 0xfe){
+	else if(input == 0xfe){
 		move_left();
 		redraw();
 	}
-	if(input == 0xfb){
+	else if(input == 0xfb){
 		move_right();
 		redraw();
 	}
@@ -180,14 +180,16 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
 }
 	
-	fbfd = open("/dev/fb0", O_RDWR);
-    if (fbfd == -1) {
+	//fbfd = open("/dev/fb0", O_RDWR);
+	framebuffer_driver = fopen("/dev/fb0", "r+");
+	framebuffer_fd = fileno(framebuffer_driver);
+    if (framebuffer_fd == -1) {
         printf("Error: unable to open framebuffer device.\n");
         return EXIT_FAILURE;
     }
 
     // Get screen size info
-    if (ioctl(fbfd, FBIOGET_VSCREENINFO, &vinfo) == -1) {
+    if (ioctl(framebuffer_fd, FBIOGET_VSCREENINFO, &vinfo) == -1) {
         printf("Error: unable to get screen info.\n");
         return EXIT_FAILURE;
     }
@@ -202,14 +204,14 @@ int main(int argc, char *argv[])
     screensize_bytes = screensize_pixels * vinfo.bits_per_pixel / 8;
     printf("%d\n", screensize_pixels);
 
-    fbp = (uint16_t*)mmap(NULL, screensize_bytes, PROT_READ | PROT_WRITE, MAP_SHARED, fbfd, 0);
-    if ((int)fbp == MAP_FAILED) {
+    framebuffer_pointer = (uint16_t*)mmap(NULL, screensize_bytes, PROT_READ | PROT_WRITE, MAP_SHARED, framebuffer_fd, 0);
+    if ((int)framebuffer_pointer == (int)MAP_FAILED) {
         printf("Error: failed to memorymap framebuffer.\n");
         return EXIT_FAILURE;
 }
 	
 	draw_maze();
-	ioctl(fbfd, 0x4680, &screen);
+	ioctl(framebuffer_fd, 0x4680, &screen);
 	
 	printf("Entering loop\n");
 	while(1);

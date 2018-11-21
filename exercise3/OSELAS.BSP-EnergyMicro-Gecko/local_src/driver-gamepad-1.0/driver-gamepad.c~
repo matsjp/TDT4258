@@ -36,11 +36,6 @@ struct cdev gamepad_cdev;
 struct fasync_struct* fasync;
 struct class *cl;
 
-module_init(gamepad_init);
-module_exit(gamepad_exit);
-MODULE_DESCRIPTION("Device driver for the gamepad used in TDT4258");
-MODULE_LICENSE("GPL");
-
 static struct file_operations gamepad_fops = {
     .owner = THIS_MODULE,
     .open = gamepad_open,
@@ -66,9 +61,8 @@ irqreturn_t gpio_interrupt_handler(int irq, void* dev_id, struct pt_regs* regs){
 
 
 static int __init gamepad_init(void){
+	int result;
     printk("Attempting to load gamepad driver module\n");
-
-    int result;
 
     result = alloc_chrdev_region(&device_num, 0, COUNT, NAME);
 
@@ -77,16 +71,16 @@ static int __init gamepad_init(void){
         return -1;
     }
 
-    if (request_mem_region(GPIO_PC_MODEL, 1, NAME) == NULL ) {
-        printk(KERN_ALERT "Error requesting GPIO_PC_MODEL memory region, already in use?\n");
+    if (request_mem_region((resource_size_t)GPIO_PC_MODEL, 1, NAME) == NULL ) {
+        printk(KERN_ALERT "Error requesting GPIO_PC_MODEL memory region\n");
         return -1;
     }
-    if (request_mem_region(GPIO_PC_DOUT, 1, NAME) == NULL ) {
-        printk(KERN_ALERT "Error requesting GPIO_PC_DOUT memory region, already in use?\n");
+    if (request_mem_region((resource_size_t)GPIO_PC_DOUT, 1, NAME) == NULL ) {
+        printk(KERN_ALERT "Error requesting GPIO_PC_DOUT memory region\n");
         return -1;
     }
-    if (request_mem_region(GPIO_PC_DIN, 1, NAME) == NULL ) {
-        printk(KERN_ALERT "Error requesting GPIO_PC_DIN memory region, already in use?\n");
+    if (request_mem_region((resource_size_t)GPIO_PC_DIN, 1, NAME) == NULL ) {
+        printk(KERN_ALERT "Error requesting GPIO_PC_DIN memory region\n");
         return -1;
     }
 
@@ -95,17 +89,17 @@ static int __init gamepad_init(void){
     iowrite32(0x22222222, GPIO_EXTIPSELL);
     
     //TODO release these
-    if (request_mem_region(DAC0_CTRL, 1, NAME) == NULL ) {
+    if (request_mem_region((resource_size_t)DAC0_CTRL, 1, NAME) == NULL ) {
         printk(KERN_ALERT "Error requesting DAC0_CTRL memory region, already in use?\n");
         return -1;
     }
     
-    if (request_mem_region(DAC0_CH0CTRL, 1, NAME) == NULL ) {
+    if (request_mem_region((resource_size_t)DAC0_CH0CTRL, 1, NAME) == NULL ) {
         printk(KERN_ALERT "Error requesting DAC0_CH0CTRL memory region, already in use?\n");
         return -1;
     }
     
-    if (request_mem_region(DAC0_CH1CTRL, 1, NAME) == NULL ) {
+    if (request_mem_region((resource_size_t)DAC0_CH1CTRL, 1, NAME) == NULL ) {
         printk(KERN_ALERT "Error requesting DAC1_CH0CTRL memory region, already in use?\n");
         return -1;
     }
@@ -143,9 +137,9 @@ static void __exit gamepad_exit(void)
     free_irq(GPIO_EVEN, &gamepad_cdev);
     free_irq(GPIO_ODD, &gamepad_cdev);
 
-    release_mem_region(GPIO_PC_MODEL, 1);
-    release_mem_region(GPIO_PC_DIN, 1);
-    release_mem_region(GPIO_PC_DOUT, 1);
+    release_mem_region((resource_size_t)GPIO_PC_MODEL, 1);
+    release_mem_region((resource_size_t)GPIO_PC_DIN, 1);
+    release_mem_region((resource_size_t)GPIO_PC_DOUT, 1);
 
 
     cdev_del(&gamepad_cdev);
@@ -171,8 +165,8 @@ static int gamepad_release(struct inode* inode, struct file* filp)
 static ssize_t gamepad_read(struct file* filp, char* __user buff,
         size_t count, loff_t* offp)
 {
+	int data = ioread32(GPIO_PC_DIN);
 	printk("gamepad_read\n");
-    int data = ioread32(GPIO_PC_DIN);
     //printk(KERN_INFO"%x\n", data);
     if (copy_to_user(buff, &data, 1)){
     	printk("gapepad_read copy_to_user error");
@@ -188,4 +182,9 @@ static ssize_t gamepad_write(struct file* filp, char* __user buff,
     printk("%d\n", data);
     return 1;
 }
+
+module_init(gamepad_init);
+module_exit(gamepad_exit);
+MODULE_DESCRIPTION("Device driver for the gamepad used in TDT4258");
+MODULE_LICENSE("GPL");
 
