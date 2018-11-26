@@ -1,52 +1,34 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <signal.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
-#include <linux/fb.h>
-#include <sys/ioctl.h>
-
-
-#define YELLOW 0xFFE0
-#define BLACK 0x0000
-#define WHITE 0xFFFF
-#define CYAN 0x07FF
-#define INPUT_DOWN 0xf7
-#define INPUT_LEFT 0xfe
-#define INPUT_RIGHT 0xfb
-#define INPUT_UP 0xfd
-
-
-FILE* gamepad_driver;
-FILE* framebuffer_driver;
-
-char gameboard[12][17] = {{"wwwwwwwwwwwwwwew\0"},
-                          {"woooooooooooooow\0"},
-                          {"wowwwwwwwwwwwwww\0"},
-                          {"wowpowwooowoooww\0"},
-                          {"wowwowwowowowoww\0"},
-                          {"wowwoooowooowoww\0"},
-                          {"wowoowwwwwwwwoww\0"},
-                          {"wowowoowwoooooww\0"},
-                          {"wowowowwwowwwwww\0"},
-                          {"wowooowwwoooowww\0"},
-                          {"wowwwwwwwwwwowww\0"},
-                          {"woooooooooooowww\0"}
+#include "game.h";
+/*
+w = wall
+o = open space
+p = placer
+e = goal
+*/
+char gameboard[12][17] = { {"wwwwwwwwwwwwwwew\0"},
+{"woooooooooooooow\0"},
+{"wowwwwwwwwwwwwww\0"},
+{"wowpowwooowoooww\0"},
+{"wowwowwowowowoww\0"},
+{"wowwoooowooowoww\0"},
+{"wowoowwwwwwwwoww\0"},
+{"wowowoowwoooooww\0"},
+{"wowowowwwowwwwww\0"},
+{"wowooowwwoooowww\0"},
+{"wowwwwwwwwwwowww\0"},
+{"woooooooooooowww\0"}
 };
+
+FILE *gamepad_driver;
+FILE *framebuffer_driver;
+
 int playerx = 3;
 int playery = 3;
 int goalx = 14;
 int goaly = 0;
 int framebuffer_fd;
-uint16_t* framebuffer_pointer;
-int screensize_pixels;
-int screensize_bytes;
-
-struct fb_var_screeninfo vinfo;
-struct fb_copyarea screen;
+uint16_t *framebuffer_pointer;
+struct fb_copyarea rect;
 
 /*
  *Function: get_row
@@ -57,8 +39,10 @@ struct fb_copyarea screen;
  *
  *returns: the row the pixel belongs to
  */
-int get_row(int pixel){
-	return (int) pixel/320;
+int
+get_row (int pixel)
+{
+  return (int) pixel / 320;
 }
 
 /*
@@ -72,8 +56,10 @@ int get_row(int pixel){
  *
  *returns: the column the picel belongs to
  */
-int get_col(int pixel, int row){
-	return (int)(((int)(pixel - row*320))/20);
+int
+get_col (int pixel, int row)
+{
+  return (int) (((int) (pixel - row * 320)) / 20);
 }
 
 /*
@@ -83,30 +69,38 @@ int get_col(int pixel, int row){
  *
  *returns: void
  */
-void draw_maze(){
-	int i;
-	int color;
-	for(i = 0; i<screensize_pixels; i++){
-		int row = get_row(i);
-		int col = get_col(i, row);
-		row = (int)(row/20);
-		char grid = gameboard[row][col];
-		if (grid == 'w'){
-			color = BLACK;
-		}
-		else if(grid == 'o'){
-			color = WHITE;
-		}
-		else if(grid == 'p'){
-			color = YELLOW;
-		}
-		else if(grid == 'e'){
-			color = CYAN;
-		}
-		framebuffer_pointer[i] = color;
+void
+draw_maze ()
+{
+  int i;
+  int color;
+  //loop through each pixel and give it color based on which grid in the gameboard it belongs to
+  for (i = 0; i < SCREENSIZE_PIXELS; i++)
+    {
+      int row = get_row (i);
+      int col = get_col (i, row);
+      row = (int) (row / 20);
+      char grid = gameboard[row][col];
+      if (grid == 'w')
+	{
+	  color = BLACK;
 	}
-	update_framebuffer();
-	ioctl(framebuffer_fd, 0x4680, &screen);
+      else if (grid == 'o')
+	{
+	  color = WHITE;
+	}
+      else if (grid == 'p')
+	{
+	  color = YELLOW;
+	}
+      else if (grid == 'e')
+	{
+	  color = CYAN;
+	}
+      framebuffer_pointer[i] = color;
+    }
+  //update screen
+  ioctl (framebuffer_fd, 0x4680, &rect);
 }
 
 /*
@@ -116,23 +110,10 @@ void draw_maze(){
  *
  *returns: 1 if the player is in a winning state, and 0 if not
  */
-int check_win(){
-	return ((playerx == goalx) && (playery == goaly));
-}
-
-/*
- *Function: update_framebuffer
- *
- *updates the framebuffer memory map so that it represents the current state of the game board
- *
- *return: void
- */
-
-void update_framebuffer(){
-	int i;
-    for (i = 0; i < 12; i++){
-            printf("%s\n", gameboard[i]);
-    }
+int
+check_win ()
+{
+  return ((playerx == goalx) && (playery == goaly));
 }
 
 
@@ -141,14 +122,20 @@ void update_framebuffer(){
  *
  *Moves the player left on the gameboard if possible
  *
- *returns: void
+ *returns: 1 if move is legal, else 0
  */
-void move_left(){
-    if (playerx != 0 && gameboard[playery][playerx - 1] != 'w'){
-        gameboard[playery][playerx] = 'o';
-        playerx -= 1;
-        gameboard[playery][playerx] = 'p';
+int
+move_left ()
+{
+  if (playerx != GAMEBOARD_LEFT_EDGE
+      && gameboard[playery][playerx - 1] != 'w')
+    {
+      gameboard[playery][playerx] = 'o';
+      playerx -= 1;
+      gameboard[playery][playerx] = 'p';
+      return 1;
     }
+  return 0;
 }
 
 /*
@@ -156,15 +143,19 @@ void move_left(){
  *
  *Moves the player up on the gameboard if possible
  *
- *returns: void
+ *returns: 1 if the move is legal, else 0
  */
-void move_up(){
-    printf("%c\n", gameboard[playery - 1][playerx]);
-    if (playery != 0 && gameboard[playery - 1][playerx] != 'w'){
-        gameboard[playery][playerx] = 'o';
-        playery -= 1;
-        gameboard[playery][playerx] = 'p';
+int
+move_up ()
+{
+  if (playery != GAMEBOARD_TOP_EDGE && gameboard[playery - 1][playerx] != 'w')
+    {
+      gameboard[playery][playerx] = 'o';
+      playery -= 1;
+      gameboard[playery][playerx] = 'p';
+      return 1;
     }
+  return 0;
 }
 
 /*
@@ -172,14 +163,20 @@ void move_up(){
  *
  *Moves the player right on the gameboard if possible
  *
- *returns: void
+ *returns: 1 if move is legal, else 0
  */
-void move_right(){
-    if (playerx != 15 && gameboard[playery][playerx + 1] != 'w'){
-        gameboard[playery][playerx] = 'o';
-        playerx += 1;
-        gameboard[playery][playerx] = 'p';
+int
+move_right ()
+{
+  if (playerx != GAMEBOARD_RIGHT_EDGE
+      && gameboard[playery][playerx + 1] != 'w')
+    {
+      gameboard[playery][playerx] = 'o';
+      playerx += 1;
+      gameboard[playery][playerx] = 'p';
+      return 1;
     }
+  return 0;
 }
 
 /*
@@ -187,96 +184,159 @@ void move_right(){
  *
  *Moves the player down on the gameboard if possible
  *
+ *returns: 1 if move is legal, else 0
+ */
+int
+move_down ()
+{
+  if (playery != GAMEBOARD_BOTTOM_EDGE
+      && gameboard[playery + 1][playerx] != 'w')
+    {
+      gameboard[playery][playerx] = 'o';
+      playery += 1;
+      gameboard[playery][playerx] = 'p';
+      return 1;
+    }
+  return 0;
+}
+
+/*
+ *Function: handler
+ *
+ *This is the handler function that runs every time the gamepad driver send a asyncronous notification
+ *
+ *signo: the signal sent by the driver
+ *
  *returns: void
  */
-void move_down(){
-    if (playery != 11 && gameboard[playery + 1][playerx] != 'w'){
-        gameboard[playery][playerx] = 'o';
-        playery += 1;
-        gameboard[playery][playerx] = 'p';
-    }
-}
-
-void handler(int signo){
-	int input = fgetc(gamepad_driver);
-	if(input == INPUT_DOWN){
-		move_down();
-		draw_maze();
-	}
-	else if(input == INPUT_LEFT){
-		move_left();
-		draw_maze();
-	}
-	else if(input == INPUT_RIGHT){
-		move_right();
-		draw_maze();
-	}
-	if(input == INPUT_UP){
-		move_up();
-		draw_maze();
-	}
-	if(check_win()){
-		gameboard[goaly][goalx] = 'e';
-		playerx = 3;
-		playery = 3;
-		gameboard[playerx][playery] = 'p';
-		draw_maze();
-	}
-}
-
-int main(int argc, char *argv[])
+void
+handler (int signo)
 {
-	
-	gamepad_driver = fopen("/dev/gamepad", "r+");
-	if (!gamepad_driver) {
-        printf("Error while opening driver\n");
-        return EXIT_FAILURE;
+  int input = fgetc (gamepad_driver);
+  //Legal move is used to keep track of if a attenped move is legal or not. If the move is legal then the screen is updated
+  int legal_move;
+  if (input == INPUT_DOWN)
+    {
+      legal_move = move_down ();
     }
-    if (signal(SIGIO, &handler) == SIG_ERR) {
-        printf("Error while registering signal handler\n");
-        return EXIT_FAILURE;
+  else if (input == INPUT_LEFT)
+    {
+      legal_move = move_left ();
     }
-    if (fcntl(fileno(gamepad_driver), F_SETOWN, getpid()) == -1) {
-        printf("Error while setting pid\n");
-        return EXIT_FAILURE;
+  else if (input == INPUT_RIGHT)
+    {
+      legal_move = move_right ();
     }
-    long oflags = fcntl(fileno(gamepad_driver), F_GETFL);
-    if (fcntl(fileno(gamepad_driver), F_SETFL, oflags | FASYNC) == -1) {
-        printf("Error while setting FASYNC flag\n");
-        return EXIT_FAILURE;
+  else if (input == INPUT_UP)
+    {
+      legal_move = move_up ();
+    }
+  else
+    {
+      legal_move = 0;
+    }
+  if (legal_move)
+    {
+      draw_maze ();
+    }
+  //if player is at goal, teleport them back to the start
+  if (check_win ())
+    {
+      gameboard[goaly][goalx] = 'e';
+      playerx = 3;
+      playery = 3;
+      gameboard[playerx][playery] = 'p';
+      draw_maze ();
+    }
 }
-	
-	framebuffer_driver = fopen("/dev/fb0", "r+");
-	framebuffer_fd = fileno(framebuffer_driver);
-    if (framebuffer_fd == -1) {
-        printf("Error while opening frame buffer device\n");
-        return EXIT_FAILURE;
+
+/*
+ *Function: init_gamepad_driver
+ *
+ *Initiates the gamepad driver
+ *
+ *returns: integer showing success or failure 
+ */
+int
+init_gamepad_driver ()
+{
+  gamepad_driver = fopen ("/dev/gamepad", "r+");
+  int gamepad_driver_fd = fileno (gamepad_driver);
+  if (!gamepad_driver)
+    {
+      printf ("Error while opening driver\n");
+      return EXIT_FAILURE;
+    }
+  if (signal (SIGIO, &handler) == SIG_ERR)
+    {
+      printf ("Error while registering signal handler\n");
+      return EXIT_FAILURE;
+    }
+  if (fcntl (gamepad_driver_fd, F_SETOWN, getpid ()) == -1)
+    {
+      printf ("Error while setting pid\n");
+      return EXIT_FAILURE;
+    }
+  long oflags = fcntl (gamepad_driver_fd, F_GETFL);
+  if (fcntl (gamepad_driver_fd, F_SETFL, oflags | FASYNC) == -1)
+    {
+      printf ("Error while setting FASYNC flag\n");
+      return EXIT_FAILURE;
+    }
+  return 0;
+}
+
+/*
+ *Function: init_framebuffer_driver
+ *
+ *Initiates the framebuffer driver
+ *
+ *returns: integer to show success or failure
+ */
+int
+init_framebuffer_driver ()
+{
+  framebuffer_driver = fopen ("/dev/fb0", "r+");
+  framebuffer_fd = fileno (framebuffer_driver);
+  if (framebuffer_fd == -1)
+    {
+      printf ("Error while opening frame buffer device\n");
+      return EXIT_FAILURE;
     }
 
-    if (ioctl(framebuffer_fd, FBIOGET_VSCREENINFO, &vinfo) == -1) {
-        printf("Error while getting screen info\n");
-        return EXIT_FAILURE;
+  rect.dx = 0;
+  rect.dy = 0;
+  rect.width = 320;
+  rect.height = 240;
+
+  framebuffer_pointer =
+    (uint16_t *) mmap (NULL, SCREENSIZE_BYTES, PROT_READ | PROT_WRITE,
+		       MAP_SHARED, framebuffer_fd, 0);
+  if ((int) framebuffer_pointer == (int) MAP_FAILED)
+    {
+      printf ("Error while making memory map\n");
+      return EXIT_FAILURE;
     }
-    printf("Screeninfo: %d x %d, %dbpp\n", vinfo.xres, vinfo.yres, vinfo.bits_per_pixel);
+  return 0;
+}
 
-    screen.dx = 0;
-    screen.dy = 0;
-    screen.width = vinfo.xres;
-    screen.height = vinfo.yres;
+int
+main (int argc, char *argv[])
+{
+  if (init_gamepad_driver () != 0)
+    {
+      return EXIT_FAILURE;
+    }
 
-    screensize_pixels = vinfo.xres * vinfo.yres;
-    screensize_bytes = screensize_pixels * vinfo.bits_per_pixel / 8;
-
-    framebuffer_pointer = (uint16_t*)mmap(NULL, screensize_bytes, PROT_READ | PROT_WRITE, MAP_SHARED, framebuffer_fd, 0);
-    if ((int)framebuffer_pointer == (int)MAP_FAILED) {
-        printf("Error while making memory map\n");
-        return EXIT_FAILURE;
-	}
-	
-	//Draw the maze for the first time
-	draw_maze();
-	//continyally put the program to sleep and wait for input from the gamepad driver
-	while(1){
-		pause();
-	}
+  if (init_framebuffer_driver () != 0)
+    {
+      return EXIT_FAILURE;
+    }
+  //Draw the maze for the first time
+  draw_maze ();
+  //continually put the program to sleep and wait for input from the gamepad driver
+  while (1)
+    {
+      pause ();
+    }
 }
